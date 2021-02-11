@@ -1,12 +1,8 @@
-from flask import Flask, url_for, render_template, request, redirect
+from flask import Flask, url_for, render_template, request, redirect, session
 from markupsafe import escape
 from jinja2 import Template
-
-# app = Flask("web1")
-# @app.route('/')
-# def index():
-#     return  render_template('login.html')
-
+from datetime import timedelta
+from flask_sqlalchemy import SQLAlchemy
 # @app.route('/login', methods=['POST', 'GET'])
 # def login():
 #     error = None
@@ -21,13 +17,22 @@ from jinja2 import Template
 #     return render_template('login.html', error=error)
 
     
-# @app.route('/hello/')
-# @app.route('/hello/<name>')
-# def hello(name=None):
-#     return render_template('hello.html', name=name)
-
 
 app = Flask(__name__)
+app.secret_key = "hell"
+app.config['SQLALCHEMY_DATABASE_URI']='sqlite://users.sqlite3'
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] =False
+app.permanent_session_lifetime=timedelta(hours=12)
+
+db=SQLAlchemy(app)
+class users(db.Model):
+    _id=db.Column("id", db.Integer, primary_key=True)
+    name=db.Column("name", db.String(100))
+    email=db.Column("email", db.String(100))
+
+    def __init__(self, name, email):
+        self.name =name
+        self.email=email
 
 @app.route('/')
 def home():
@@ -45,15 +50,35 @@ def admin():
 @app.route('/login/', methods=["POST", "GET"])
 def login():
     if request.method=="POST":
-        user=request.form['name']
-        return redirect(url_for("hello", name=user))
+        username=request.form['name']
+        session.permanent=True
+        session["user"]=username
+        return redirect(url_for("user"))
     else:
         content =None
         return render_template("login.html", content="login") #render ra trang login.html, dua tren trang base.html
 
-@app.route('/<usr>')
-def user(usr):
-    return f"<h1>{usr}</h1>"
+@app.route('/logout')
+def logout():
+    session.pop("user", None)
+    session.pop("email", None)
+    return redirect(url_for("login"))
+
+@app.route('/user', methods=["POST","GET"])
+def user():
+    email=None
+    if "user" in session:
+        username = session["user"]
+        if request.method=="POST":
+            mail=request.form['email']
+            session["email"]=email
+        else:
+            if "email" in session:
+             session["email"]=email
+        return render_template("user.html") 
+        
+    else:
+        return redirect(url_for("login"))
 
 if __name__=="__main__":
     app.run()
