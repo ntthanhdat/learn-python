@@ -53,32 +53,43 @@ def login():
         username=request.form['name']
         session.permanent=True
         session["user"]=username
+
+        found_user=users.query.filter_by(name=username).first()
+        if found_user:
+            session["email"]=found_user.email
+        else:
+            usr= users(username, "")
+            db.session.add(usr)
+            db.session.commit()
         return redirect(url_for("user"))
     else:
         content =None
         return render_template("login.html", content="login") #render ra trang login.html, dua tren trang base.html
 
-@app.route('/logout')
-def logout():
-    session.pop("user", None)
-    session.pop("email", None)
-    return redirect(url_for("login"))
 
 @app.route('/user', methods=["POST","GET"])
 def user():
     email=None
     if "user" in session:
-        username = session["user"]
-        if request.method=="POST":
-            mail=request.form['email']
-            session["email"]=email
-        else:
-            if "email" in session:
-             session["email"]=email
-        return render_template("user.html") 
+        # username = session["user"]
+        # if request.method=="POST":
+        #     email=request.form['email']
+        #     session["email"]=email
+        #     found_user=users.query.filter_by(name=username).first()
+        #     found_user.email=email
+        #     db.session.commit()
+        # else:
+        #     if "email" in session:
+        #         email=session["email"]
+        return render_template("user.html", email=email) 
         
     else:
         return redirect(url_for("login"))
+@app.route('/logout')
+def logout():
+    session.pop("user", None)
+    session.pop("email", None)
+    return redirect(url_for("login"))
 
 if __name__=="__main__":
     app.run()
