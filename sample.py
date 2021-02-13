@@ -20,11 +20,11 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = "hell"
-app.config['SQLALCHEMY_DATABASE_URI']='sqlite://users.sqlite3'
+app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] =False
 app.permanent_session_lifetime=timedelta(hours=12)
 
-db=SQLAlchemy(app)
+db = SQLAlchemy(app)
 class users(db.Model):
     _id=db.Column("id", db.Integer, primary_key=True)
     name=db.Column("name", db.String(100))
@@ -33,6 +33,8 @@ class users(db.Model):
     def __init__(self, name, email):
         self.name =name
         self.email=email
+
+db.create_all()
 
 @app.route('/')
 def home():
@@ -43,12 +45,13 @@ def home():
 def hello(name=None):
     return render_template("hello.html", name=name, r=3)
 
-@app.route('/admin/')
-def admin():
-    return redirect(url_for("home"))
+@app.route('/view/')
+def view():
+    return render_template("view.html", values=users.query.all())
 
 @app.route('/login/', methods=["POST", "GET"])
 def login():
+    username=None
     if request.method=="POST":
         username=request.form['name']
         session.permanent=True
@@ -62,25 +65,26 @@ def login():
             db.session.add(usr)
             db.session.commit()
         return redirect(url_for("user"))
+        #return render_template("login.html", content="login", name=username)
     else:
         content =None
-        return render_template("login.html", content="login") #render ra trang login.html, dua tren trang base.html
+        return render_template("login.html", content="login", name=username) #render ra trang login.html, dua tren trang base.html
 
 
 @app.route('/user', methods=["POST","GET"])
 def user():
     email=None
     if "user" in session:
-        # username = session["user"]
-        # if request.method=="POST":
-        #     email=request.form['email']
-        #     session["email"]=email
-        #     found_user=users.query.filter_by(name=username).first()
-        #     found_user.email=email
-        #     db.session.commit()
-        # else:
-        #     if "email" in session:
-        #         email=session["email"]
+        username = session["user"]
+        if request.method=="POST":
+             email=request.form['email']
+             session["email"]=email
+             found_user=users.query.filter_by(name=username).first()
+             found_user.email=email
+             db.session.commit()
+        else:
+             if "email" in session:
+                 email=session["email"]
         return render_template("user.html", email=email) 
         
     else:
