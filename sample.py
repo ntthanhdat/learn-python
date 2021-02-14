@@ -3,6 +3,7 @@ from markupsafe import escape
 from jinja2 import Template
 from datetime import timedelta
 from flask_sqlalchemy import SQLAlchemy
+from second import second
 # @app.route('/login', methods=['POST', 'GET'])
 # def login():
 #     error = None
@@ -19,6 +20,7 @@ from flask_sqlalchemy import SQLAlchemy
     
 
 app = Flask(__name__)
+app.register_blueprint(second, url_prefix="/admin")
 app.secret_key = "hell"
 app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.sqlite3'
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] =False
