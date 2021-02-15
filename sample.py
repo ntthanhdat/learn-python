@@ -2,8 +2,9 @@ from flask import Flask, url_for, render_template, request, redirect, session
 from markupsafe import escape
 from jinja2 import Template
 from datetime import timedelta
-from flask_sqlalchemy import SQLAlchemy
 from second import second
+from mydatabase import db
+from mydatabase import users
 # @app.route('/login', methods=['POST', 'GET'])
 # def login():
 #     error = None
@@ -22,21 +23,8 @@ from second import second
 app = Flask(__name__)
 app.register_blueprint(second, url_prefix="/admin")
 app.secret_key = "hell"
-app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///students.sqlite3'
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] =False
 app.permanent_session_lifetime=timedelta(hours=12)
 
-db = SQLAlchemy(app)
-class users(db.Model):
-    _id=db.Column("id", db.Integer, primary_key=True)
-    name=db.Column("name", db.String(100))
-    email=db.Column("email", db.String(100))
-
-    def __init__(self, name, email):
-        self.name =name
-        self.email=email
-
-db.create_all()
 
 @app.route('/')
 def home():
